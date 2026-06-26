@@ -1,0 +1,13 @@
+data:
+  drive_raw_data_path: "/content/drive/MyDrive/data_colab/MEX-A3T/train_aggressiveness.csv"
+  local_raw_data_path: "data/train_aggressiveness.csv"
+
+reproducibility:
+  train_test_split:
+    test_size: 0.2
+    random_state: 42
+    stratify: true  # Preserve class distribution
+
+task:
+  text_column: "Text"
+  label_column: "Label"
