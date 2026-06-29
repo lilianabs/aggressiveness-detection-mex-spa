@@ -1,6 +1,6 @@
 import pytest
 import re
-from src.clean_data import remove_special_tokens
+from src.preprocess_data import remove_special_tokens
 
 
 class TestRemoveSpecialTokens:

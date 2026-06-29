@@ -28,8 +28,10 @@ def remove_stopwords(text: str) -> str:
 
 
 def remove_extra_whitespace(text: str) -> str:
-    return " ".join(text.split())
-
+    text = re.sub(r'\s+', ' ', text)
+    text = text.lstrip()
+    text = text.rstrip()
+    return text
 
 _STEPS = {
     "remove_special_tokens": remove_special_tokens,
