@@ -1,3 +1,5 @@
+import os
+import wandb
 from sklearn.svm import SVC
 from sklearn.base import clone
 from src.utils import load_config, get_config_path, get_project_root, load_csv
@@ -7,6 +9,11 @@ from src.train_model import (
     cross_validate
 )
 from src.evaluate import evaluate, save_predictions
+from dotenv import load_dotenv
+
+load_dotenv()
+wandb_key = os.getenv("WANDB_API_KEY")
+wandb.login(key=wandb_key)
 
 
 def main():
@@ -89,6 +96,16 @@ def main():
     y_pred = model.predict(X_test_tfidf)
     save_predictions(X_test, X_test_raw, y_test, y_pred, predictions_path)
     print(f"Predictions saved to {predictions_path}\n")
+    
+    print("Logging to Weights & Biases...")
+    wandb.init(
+        project="aggressiveness-detection"
+    )
+    wandb.log({"test_accuracy": metrics["accuracy"]})
+    wandb.log({"test_precision": metrics["precision"]})
+    wandb.log({"test_recall": metrics["recall"]})
+    wandb.log({"test_f1": metrics["f1"]})
+    wandb.finish()
 
     print("Done!")
 
