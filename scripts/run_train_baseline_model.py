@@ -51,7 +51,7 @@ def main():
     print("Vectorizing text...")
     X_train_tfidf, X_test_tfidf, vectorizer = vectorize_text(
         X_train, X_test,
-        ngram_range=(1, 1)
+        ngram_range=(1, 3)
     )
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
 
