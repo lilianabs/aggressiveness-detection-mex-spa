@@ -1,16 +1,6 @@
-import yaml
-import pandas as pd
 from pathlib import Path
+from src.utils import load_config, get_config_path, get_project_root, load_csv
 from src.preprocess_data import clean_text
-
-
-def load_config(config_path: str) -> dict:
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
-
-
-def load_data(raw_data_path: str) -> pd.DataFrame:
-    return pd.read_csv(raw_data_path)
 
 
 def preprocess_dataset(df: pd.DataFrame, steps: list[str], text_column: str) -> pd.DataFrame:
@@ -25,15 +15,15 @@ def save_data(df: pd.DataFrame, output_path: str) -> None:
 
 
 def main() -> None:
-    project_root = Path(__file__).parent.parent.resolve()
-    config_path = project_root / "config.yaml"
+    config_path = get_config_path()
     config = load_config(str(config_path))
+    project_root = get_project_root()
     local_raw_data_path = (project_root / config["data"]["local_raw_data_path"]).resolve()
     local_preprocessed_data_path = (project_root / config["data"]["local_preprocessed_data_path"]).resolve()
     text_column = config["task"]["text_column"]
 
     print(f"Loading data from {local_raw_data_path}...")
-    df = load_data(str(local_raw_data_path))
+    df = load_csv(str(local_raw_data_path))
     print(df.head())
     print(f"Loaded {len(df)} rows")
 

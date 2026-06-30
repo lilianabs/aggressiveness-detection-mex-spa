@@ -11,8 +11,9 @@ reproducibility:
 
 task:
   text_column: "Text"
-  label_column: "Label"
+  label_column: "Category"
   preprocessing_steps:
+    - remove_emojis
     - remove_special_tokens
     - lowercase
     - remove_punctuation

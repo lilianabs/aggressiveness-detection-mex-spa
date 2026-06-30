@@ -1,6 +1,7 @@
 import re
 import string
 import spacy
+import emoji
 
 nlp = spacy.load("es_core_news_sm")
 
@@ -33,7 +34,13 @@ def remove_extra_whitespace(text: str) -> str:
     text = text.rstrip()
     return text
 
+
+def remove_emojis(text: str) -> str:
+    return emoji.replace_emoji(text, replace="")
+
+
 _STEPS = {
+    "remove_emojis": remove_emojis,
     "remove_special_tokens": remove_special_tokens,
     "remove_stopwords": remove_stopwords,
     "remove_punctuation": remove_punctuation,
