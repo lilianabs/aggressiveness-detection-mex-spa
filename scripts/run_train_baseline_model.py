@@ -98,8 +98,15 @@ def main():
     print(f"Predictions saved to {predictions_path}\n")
     
     print("Logging to Weights & Biases...")
+    preprocess_steps = config["task"]["preprocessing_steps"]
     wandb.init(
-        project="aggressiveness-detection"
+        project="aggressiveness-detection",
+        name="baseline_model",
+        config={
+            "model": "SVM",
+            "Preprocessing": preprocess_steps,
+            "TF-IDF": "TF-IDF vectorization with n-grams (1, 3)",
+    }
     )
     wandb.log({"test_accuracy": metrics["accuracy"]})
     wandb.log({"test_precision": metrics["precision"]})
