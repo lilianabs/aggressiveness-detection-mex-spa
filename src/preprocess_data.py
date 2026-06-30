@@ -17,7 +17,7 @@ def remove_special_tokens(text: str) -> str:
 
 
 def remove_punctuation(text: str) -> str:
-    spanish_punctuation = string.punctuation + "¿¡"
+    spanish_punctuation = string.punctuation + "¿¡“”…π÷"
     table = str.maketrans("", "", spanish_punctuation)
     return text.translate(table)
 
