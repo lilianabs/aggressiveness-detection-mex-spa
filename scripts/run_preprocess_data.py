@@ -13,16 +13,8 @@ def load_data(raw_data_path: str) -> pd.DataFrame:
     return pd.read_csv(raw_data_path)
 
 
-def clean_dataset(df: pd.DataFrame, steps: list[str], text_column: str) -> pd.DataFrame:
+def preprocess_dataset(df: pd.DataFrame, steps: list[str], text_column: str) -> pd.DataFrame:
     df_copy = df.copy()
-    if not steps:
-         steps = [
-             "remove_special_tokens",
-             "lowercase",
-             "remove_punctuation",
-             "remove_stopwords",
-             "remove_extra_whitespace"
-         ]
     df_copy[text_column] = df_copy[text_column].apply(lambda text: clean_text(text, steps))
     return df_copy
 
@@ -45,9 +37,9 @@ def main() -> None:
     print(df.head())
     print(f"Loaded {len(df)} rows")
 
-    print("Cleaning dataset...")
-    steps = ["remove_special_tokens", "lowercase", "remove_punctuation", "remove_stopwords", "remove_extra_whitespace"]
-    df_cleaned = clean_dataset(df, steps, text_column)
+    print("Preprocessing dataset...")
+    steps = config["task"]["preprocessing_steps"]
+    df_cleaned = preprocess_dataset(df, steps, text_column)
 
     output_path = str(local_preprocessed_data_path)
     print(f"Saving preprocessed data to {output_path}...")

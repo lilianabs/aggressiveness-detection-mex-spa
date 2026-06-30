@@ -12,3 +12,9 @@ reproducibility:
 task:
   text_column: "Text"
   label_column: "Label"
+  preprocessing_steps:
+    - remove_special_tokens
+    - lowercase
+    - remove_punctuation
+    - remove_stopwords
+    - remove_extra_whitespace
