@@ -6,14 +6,16 @@ from src.train_model import (
     vectorize_text,
     cross_validate
 )
-from src.evaluate import evaluate
+from src.evaluate import evaluate, save_predictions
 
 
 def main():
     config_path = get_config_path()
     config = load_config(str(config_path))
     project_root = get_project_root()
+    local_raw_data_path = (project_root / config["data"]["local_raw_data_path"]).resolve()
     local_preprocessed_data_path = (project_root / config["data"]["local_preprocessed_data_path"]).resolve()
+    predictions_path = (project_root / config["data"]["local_predictions_path"]).resolve()
     text_column = config["task"]["text_column"]
     label_column = config["task"]["label_column"]
 
@@ -23,15 +25,23 @@ def main():
 
     print(f"Loading preprocessed data from {local_preprocessed_data_path}...")
     df = load_csv(str(local_preprocessed_data_path))
+    df_raw = load_csv(str(local_raw_data_path))
     print(df.head())
     print(f"Loaded {len(df)} rows\n")
 
     X = df[text_column].values
+    X_raw = df_raw[text_column].values
     y = df[label_column].values
 
     print("Splitting dataset...")
     X_train, X_test, y_train, y_test = split_dataset(
         X, y,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=stratify
+    )
+    _, X_test_raw, _, _ = split_dataset(
+        X_raw, y,
         test_size=test_size,
         random_state=random_state,
         stratify=stratify
@@ -74,6 +84,11 @@ def main():
     print("Classification Report:")
     print(report)
     print()
+
+    print("Saving model predictions...")
+    y_pred = model.predict(X_test_tfidf)
+    save_predictions(X_test, X_test_raw, y_test, y_pred, predictions_path)
+    print(f"Predictions saved to {predictions_path}\n")
 
     print("Done!")
 
