@@ -3,11 +3,7 @@ import wandb
 from sklearn.svm import SVC
 from sklearn.base import clone
 from src.utils import load_config, get_config_path, get_project_root, load_csv
-from src.train_model import (
-    split_dataset,
-    vectorize_text,
-    cross_validate
-)
+from src.train_model import split_dataset, vectorize_text, cross_validate
 from src.evaluate import evaluate, save_predictions
 from dotenv import load_dotenv
 
@@ -20,9 +16,15 @@ def main():
     config_path = get_config_path()
     config = load_config(str(config_path))
     project_root = get_project_root()
-    local_raw_data_path = (project_root / config["data"]["local_raw_data_path"]).resolve()
-    local_preprocessed_data_path = (project_root / config["data"]["local_preprocessed_data_path"]).resolve()
-    predictions_path = (project_root / config["data"]["local_predictions_path"]).resolve()
+    local_raw_data_path = (
+        project_root / config["data"]["local_raw_data_path"]
+    ).resolve()
+    local_preprocessed_data_path = (
+        project_root / config["data"]["local_preprocessed_data_path"]
+    ).resolve()
+    predictions_path = (
+        project_root / config["data"]["local_predictions_path"]
+    ).resolve()
     text_column = config["task"]["text_column"]
     label_column = config["task"]["label_column"]
 
@@ -42,23 +44,16 @@ def main():
 
     print("Splitting dataset...")
     X_train, X_test, y_train, y_test = split_dataset(
-        X, y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify
+        X, y, test_size=test_size, random_state=random_state, stratify=stratify
     )
     _, X_test_raw, _, _ = split_dataset(
-        X_raw, y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify
+        X_raw, y, test_size=test_size, random_state=random_state, stratify=stratify
     )
     print(f"Train set: {len(X_train)}, Test set: {len(X_test)}\n")
 
     print("Vectorizing text...")
     X_train_tfidf, X_test_tfidf, vectorizer = vectorize_text(
-        X_train, X_test,
-        ngram_range=(1, 3)
+        X_train, X_test, ngram_range=(1, 3)
     )
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
 
@@ -96,7 +91,7 @@ def main():
     y_pred = model.predict(X_test_tfidf)
     save_predictions(X_test, X_test_raw, y_test, y_pred, predictions_path)
     print(f"Predictions saved to {predictions_path}\n")
-    
+
     print("Logging to Weights & Biases...")
     preprocess_steps = config["task"]["preprocessing_steps"]
     wandb.init(
@@ -106,7 +101,7 @@ def main():
             "model": "SVM",
             "Preprocessing": preprocess_steps,
             "TF-IDF": "TF-IDF vectorization with n-grams (1, 3)",
-    }
+        },
     )
     wandb.log({"test_accuracy": metrics["accuracy"]})
     wandb.log({"test_precision": metrics["precision"]})

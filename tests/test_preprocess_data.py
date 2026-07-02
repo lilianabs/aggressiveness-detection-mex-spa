@@ -4,7 +4,6 @@ from src.preprocess_data import remove_special_tokens
 
 
 class TestRemoveSpecialTokens:
-
     def test_remove_url_simple(self):
         text = "Check this <URL> out"
         result = remove_special_tokens(text)

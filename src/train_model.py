@@ -9,10 +9,7 @@ from src.evaluate import evaluate
 def split_dataset(X, y, test_size: float, random_state: int, stratify: bool = True):
     stratify_param = y if stratify else None
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify_param
+        X, y, test_size=test_size, random_state=random_state, stratify=stratify_param
     )
     return X_train, X_test, y_train, y_test
 

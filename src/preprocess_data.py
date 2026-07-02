@@ -29,7 +29,7 @@ def remove_stopwords(text: str) -> str:
 
 
 def remove_extra_whitespace(text: str) -> str:
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
     text = text.lstrip()
     text = text.rstrip()
     return text

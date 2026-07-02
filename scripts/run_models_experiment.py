@@ -25,7 +25,9 @@ def main():
     config_path = get_config_path()
     config = load_config(str(config_path))
     project_root = get_project_root()
-    local_preprocessed_data_path = (project_root / config["data"]["local_preprocessed_data_path"]).resolve()
+    local_preprocessed_data_path = (
+        project_root / config["data"]["local_preprocessed_data_path"]
+    ).resolve()
     text_column = config["task"]["text_column"]
     label_column = config["task"]["label_column"]
 
@@ -43,26 +45,22 @@ def main():
 
     print("Splitting dataset...")
     X_train, X_test, y_train, y_test = split_dataset(
-        X, y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify
+        X, y, test_size=test_size, random_state=random_state, stratify=stratify
     )
     print(f"Train set: {len(X_train)}, Test set: {len(X_test)}\n")
 
     print("Vectorizing text...")
     X_train_tfidf, X_test_tfidf, vectorizer = vectorize_text(
-        X_train, X_test,
-        ngram_range=(1, 3)
+        X_train, X_test, ngram_range=(1, 3)
     )
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
 
     preprocess_steps = config["task"]["preprocessing_steps"]
 
     for model_name, model in MODELS.items():
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Training {model_name}...")
-        print(f"{'='*50}")
+        print(f"{'=' * 50}")
 
         print("\nPerforming cross-validation...")
         cv_scores = cross_validate(clone(model), X_train_tfidf, y_train, cv_folds=5)
@@ -98,7 +96,7 @@ def main():
                 "model": model_name,
                 "Preprocessing": preprocess_steps,
                 "TF-IDF": "TF-IDF vectorization with n-grams (1, 3)",
-            }
+            },
         )
         wandb.log({"cv_accuracy": cv_scores["accuracy"]})
         wandb.log({"cv_precision": cv_scores["precision"]})
@@ -110,7 +108,7 @@ def main():
         wandb.log({"test_f1": metrics["f1"]})
         wandb.finish()
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("Done!")
 
 
