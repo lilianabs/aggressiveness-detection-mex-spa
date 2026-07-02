@@ -45,59 +45,64 @@ This repository implements a binary text classification pipeline to detect aggre
 
 ## Running the Pipeline
 
-The project includes three main scripts that form the complete ML pipeline:
+The project includes two main scripts that form the complete ML pipeline:
 
 ### 1. Preprocess Raw Data
 
 ```bash
-python scripts/run_preprocess_data.py
+uv run scripts/run_preprocess_data.py
 ```
 
-- Loads raw data from `data/train_aggressiveness.csv`
-- Applies all cleaning steps from `config.yaml` (emoji removal, special token removal, stopword removal, punctuation removal, lowercase, whitespace normalization)
-- Outputs cleaned text to `data/train_aggressiveness_cleaned.csv`
+- Loads raw data from `data/raw/train_aggressiveness.csv`
+- Applies all cleaning steps from `config.yaml` (emoji removal, special token removal, lowercase, punctuation removal, stopword removal, whitespace normalization)
+- Outputs cleaned text to `data/preprocessed/train_aggressiveness_cleaned.csv`
 
-**Output:** `data/train_aggressiveness_cleaned.csv`
+**Output:** `data/preprocessed/train_aggressiveness_cleaned.csv`
 
-### 2. Train and Evaluate Baseline Model (SVM)
+### 2. Train and Evaluate Models
+
+**Option A: Train baseline SVM model**
 
 ```bash
-python scripts/run_train_baseline_model.py
+uv run scripts/run_train_model.py
 ```
 
 - Loads preprocessed data
 - Splits into train/test (80/20 stratified split, `random_state=42`)
-- Vectorizes with TF-IDF (n-grams: 1–3)
+- Vectorizes with TF-IDF (n-grams: 1–4)
 - Performs 5-fold stratified cross-validation on training set
-- Trains SVM (linear kernel) on full training set
+- Trains SVM (linear kernel, balanced class weights) on full training set
 - Evaluates on test set
-- Prints metrics: accuracy, precision, recall, F1
-- **Saves test predictions to `data/test_predictions.csv`** (includes raw text, preprocessed text, true label, prediction)
+- Prints metrics: accuracy, precision, recall, F1, confusion matrix, classification report
+- **Saves test predictions to `data/predictions/test_predictions-SVM_ngram_1-4_class_weight_balanced_kernel_linear.csv`** (includes raw text, preprocessed text, true label, prediction)
 - Logs results to Weights & Biases under the `aggressiveness-detection` project
 
 **Outputs:**
-- `data/test_predictions.csv` — predictions for error analysis
+- `data/predictions/test_predictions-{model_name}.csv` — predictions for error analysis
 - Experiment logs in W&B (if `.env` is configured)
 
-### 3. Compare Multiple Models
+**Option B: Compare multiple models**
 
 ```bash
-python scripts/run_models_experiment.py
+uv run scripts/run_train_models.py
 ```
 
 - Uses the same preprocessed data and TF-IDF vectorization as the baseline
 - Trains and evaluates three models for comparison:
-  - **Logistic Regression** (max_iter=1000)
-  - **Random Forest** (100 trees)
+  - **Logistic Regression** (max_iter=1000, balanced class weights)
+  - **Random Forest** (100 trees, balanced class weights)
   - **Naive Bayes** (Multinomial)
 - For each model:
-  - Performs 5-fold stratified cross-validation
+  - Performs 5-fold stratified cross-validation on training set
   - Trains on full training set
   - Evaluates on test set
+  - Saves predictions to `data/predictions/test_predictions-{model_name}.csv`
   - Logs CV and test metrics to Weights & Biases
 - Prints metrics for each model
 
-**Output:** Experiment logs in W&B
+**Output:** 
+- Experiment logs in W&B
+- Predictions saved for each model for error analysis
 
 ## Project Structure
 
@@ -110,25 +115,28 @@ python scripts/run_models_experiment.py
 │
 ├── src/
 │   ├── preprocess_data.py              # Text cleaning functions
-│   ├── train_model.py                  # Dataset splitting, vectorization, cross-validation
-│   ├── evaluate.py                     # Metrics computation and prediction saving
-│   └── utils.py                        # Config loading, path resolution, CSV I/O
+│   ├── train_model.py                  # Dataset splitting, vectorization, cross-validation, training pipeline
+│   ├── evaluate_model.py               # Metrics computation and prediction saving
+│   └── utils.py                        # Config loading, path resolution, CSV I/O, W&B logging
 │
 ├── scripts/
 │   ├── run_preprocess_data.py          # Step 1: Clean raw data
-│   ├── run_train_baseline_model.py     # Step 2: Train baseline SVM + save predictions
-│   └── run_models_experiment.py        # Step 3: Benchmark multiple models
+│   ├── run_train_model.py              # Step 2: Train baseline SVM + save predictions
+│   └── run_train_models.py             # Step 2 (alt): Benchmark multiple models (Logistic Regression, Random Forest, Naive Bayes)
 │
 ├── notebooks/
 │   ├── Explotatory_data_analysis.ipynb # EDA: class distribution, text length, word clouds
 │   ├── Baseline_model.ipynb            # Reference notebook (manual pipeline)
 │   ├── Pipeline_for_experimenting.ipynb# Exploration with sklearn pipelines
-│   └── Error_analysis.ipynb            # Inspect misclassified examples (from test_predictions.csv)
+│   └── Error_analysis.ipynb            # Inspect misclassified examples (from test_predictions CSV)
 │
 ├── data/
-│   ├── train_aggressiveness.csv        # Raw dataset (~730 KB)
-│   ├── train_aggressiveness_cleaned.csv # Preprocessed dataset (~411 KB)
-│   └── test_predictions.csv            # Test set predictions (generated after Step 2)
+│   ├── raw/
+│   │   └── train_aggressiveness.csv                    # Raw dataset (~730 KB)
+│   ├── preprocessed/
+│   │   └── train_aggressiveness_cleaned.csv           # Preprocessed dataset (~411 KB)
+│   └── predictions/
+│       └── test_predictions-{model_name}.csv          # Test set predictions (generated after Step 2)
 │
 └── tests/
     └── test_preprocess_data.py         # Unit tests for cleaning functions
@@ -147,16 +155,17 @@ Initial exploration of the MEX-A3T dataset:
 
 ### 2. Baseline Model: SVM
 
-**File:** `scripts/run_train_baseline_model.py`
+**File:** `scripts/run_train_model.py`
 
 Established a baseline classifier using Support Vector Machine (SVM):
-- **Features**: TF-IDF vectorization (n-grams: 1–3, fit on training set only)
-- **Model**: SVM with linear kernel (`C=1.0`, `random_state=42`)
+- **Features**: TF-IDF vectorization (n-grams: 1–4, fit on training set only)
+- **Model**: SVM with linear kernel, balanced class weights (`class_weight='balanced'`, `random_state=42`)
 - **Evaluation**:
-  - 5-fold stratified cross-validation on training data
+  - 5-fold stratified cross-validation on training data (preserves class distribution)
   - Test set evaluation (20% held out)
-  - Metrics: accuracy, precision, recall (weighted + for class 1), F1-score
-- **Predictions saved**: `data/test_predictions.csv` includes both raw and preprocessed text for error inspection
+  - Metrics: accuracy, precision, recall, F1-score, confusion matrix, classification report
+- **Predictions saved**: `data/predictions/test_predictions-{model_name}.csv` includes both raw and preprocessed text for error inspection
+- **Weights & Biases logging**: Cross-validation metrics logged for tracking experiments
 
 ### 3. Error Analysis
 
@@ -170,19 +179,19 @@ Detailed inspection of model mistakes:
 
 ### 4. Model Comparison
 
-**File:** `scripts/run_models_experiment.py`
+**File:** `scripts/run_train_models.py`
 
-Benchmark three additional algorithms against the SVM baseline using identical preprocessing and evaluation:
+Benchmark three additional algorithms alongside the SVM baseline using identical preprocessing and evaluation:
 
 | Model | Details |
 |-------|---------|
-| **Logistic Regression** | max_iter=1000, L2 penalty, `random_state=42` |
-| **Random Forest** | 100 trees, default hyperparameters, `random_state=42` |
+| **Logistic Regression** | max_iter=1000, L2 penalty, balanced class weights, `random_state=42` |
+| **Random Forest** | 100 trees, balanced class weights, `random_state=42` |
 | **Naive Bayes** | Multinomial (works with TF-IDF non-negative counts) |
 
-**Evaluation protocol**: Same as baseline (5-fold CV + test set eval).
+**Evaluation protocol**: Same as baseline (5-fold stratified CV + test set eval).
 
-**Tracking**: All results logged to Weights & Biases (`aggressiveness-detection` project) for easy cross-run comparison.
+**Tracking**: All results (CV metrics, predictions) logged to Weights & Biases (`aggressiveness-detection` project) for easy cross-run comparison.
 
 ## Configuration
 
@@ -191,10 +200,13 @@ Benchmark three additional algorithms against the SVM baseline using identical p
 Centralized configuration for reproducibility:
 
 ```yaml
+project:
+  name: "aggressiveness-detection"
+
 data:
-  local_raw_data_path: "data/train_aggressiveness.csv"
-  local_preprocessed_data_path: "data/train_aggressiveness_cleaned.csv"
-  local_predictions_path: "data/test_predictions.csv"
+  local_raw_data_path: "data/raw/train_aggressiveness.csv"
+  local_preprocessed_data_path: "data/preprocessed/train_aggressiveness_cleaned.csv"
+  local_predictions_file: "data/predictions/test_predictions-{model_name}.csv"
 
 reproducibility:
   train_test_split:

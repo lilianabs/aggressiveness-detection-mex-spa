@@ -6,7 +6,7 @@ from sklearn.base import clone
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from src.evaluate import evaluate, save_predictions
+from src.evaluate_model import evaluate, save_predictions
 from src.utils import log_model_to_wandb
 
 
