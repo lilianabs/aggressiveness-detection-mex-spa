@@ -101,7 +101,7 @@ def main():
     preprocess_steps = config["task"]["preprocessing_steps"]
     wandb.init(
         project="aggressiveness-detection",
-        name="baseline_model",
+        name="SVM",
         config={
             "model": "SVM",
             "Preprocessing": preprocess_steps,
