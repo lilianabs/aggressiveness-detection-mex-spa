@@ -18,7 +18,7 @@ def vectorize_text(X_train, X_test, ngram_range: tuple = (1, 2)):
     vectorizer = TfidfVectorizer(ngram_range=ngram_range)
     X_train_tfidf = vectorizer.fit_transform(X_train)
     X_test_tfidf = vectorizer.transform(X_test)
-    return X_train_tfidf, X_test_tfidf, vectorizer
+    return X_train_tfidf, X_test_tfidf
 
 
 def cross_validate(model, X, y, cv_folds: int = 5):

@@ -50,7 +50,7 @@ def main():
     print(f"Train set: {len(X_train)}, Test set: {len(X_test)}\n")
 
     print("Vectorizing text...")
-    X_train_tfidf, X_test_tfidf, vectorizer = vectorize_text(
+    X_train_tfidf, X_test_tfidf = vectorize_text(
         X_train, X_test, ngram_range=(1, 3)
     )
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
@@ -102,10 +102,6 @@ def main():
         wandb.log({"cv_precision": cv_scores["precision"]})
         wandb.log({"cv_recall": cv_scores["recall"]})
         wandb.log({"cv_f1": cv_scores["f1"]})
-        wandb.log({"test_accuracy": metrics["accuracy"]})
-        wandb.log({"test_precision": metrics["precision"]})
-        wandb.log({"test_recall": metrics["recall"]})
-        wandb.log({"test_f1": metrics["f1"]})
         wandb.finish()
 
     print(f"\n{'=' * 50}")
