@@ -58,7 +58,7 @@ def main():
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
 
     print("Creating SVM model...")
-    model = SVC(kernel="linear", random_state=random_state)
+    model = SVC(kernel="linear", random_state=random_state, class_weight='balanced')
     print(f"Model: {model}\n")
 
     print("Performing cross-validation...")
@@ -96,9 +96,9 @@ def main():
     preprocess_steps = config["task"]["preprocessing_steps"]
     wandb.init(
         project="aggressiveness-detection",
-        name="SVM",
+        name="SVM class_weight=balanced",
         config={
-            "model": "SVM",
+            "model": "SVM class_weight=balanced'",
             "Preprocessing": preprocess_steps,
             "TF-IDF": "TF-IDF vectorization with n-grams (1, 3)",
         },

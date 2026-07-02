@@ -15,8 +15,8 @@ wandb.login(key=wandb_key)
 
 
 MODELS = {
-    "LogisticRegression": LogisticRegression(max_iter=1000, random_state=42),
-    "RandomForest": RandomForestClassifier(n_estimators=100, random_state=42),
+    "LogisticRegression": LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced'),
+    "RandomForest": RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced'),
     "NaiveBayes": MultinomialNB(),
 }
 
@@ -93,7 +93,7 @@ def main():
             project="aggressiveness-detection",
             name=model_name,
             config={
-                "model": model_name,
+                "model": model_name + " with class_weight=balanced",
                 "Preprocessing": preprocess_steps,
                 "TF-IDF": "TF-IDF vectorization with n-grams (1, 3)",
             },
