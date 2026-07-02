@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import SVC
 from src.evaluate import evaluate
 
 
@@ -37,7 +36,7 @@ def cross_validate(model, X, y, cv_folds: int = 5):
         scores["recall"].append(metrics["recall"])
         scores["f1"].append(metrics["f1"])
 
-    return {k: np.mean(v) for k, v in scores.items()}
+    return {k: {"mean": np.mean(v), "std": np.std(v)} for k, v in scores.items()}
 
 
 def train(model, X_train, y_train):

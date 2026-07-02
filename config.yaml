@@ -1,8 +1,8 @@
 data:
   drive_raw_data_path: "/content/drive/MyDrive/data_colab/MEX-A3T/train_aggressiveness.csv"
-  local_raw_data_path: "data/train_aggressiveness.csv"
-  local_preprocessed_data_path: "data/train_aggressiveness_cleaned.csv"
-  local_predictions_path: "data/test_predictions.csv"
+  local_raw_data_path: "data/raw/train_aggressiveness.csv"
+  local_preprocessed_data_path: "data/preprocessed/train_aggressiveness_cleaned.csv"
+  local_predictions_file: "data/predictions/test_predictions-{model_name}.csv"
 
 reproducibility:
   train_test_split:

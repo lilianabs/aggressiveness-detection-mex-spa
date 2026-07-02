@@ -15,8 +15,12 @@ wandb.login(key=wandb_key)
 
 
 MODELS = {
-    "LogisticRegression": LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced'),
-    "RandomForest": RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced'),
+    "LogisticRegression": LogisticRegression(
+        max_iter=1000, random_state=42, class_weight="balanced"
+    ),
+    "RandomForest": RandomForestClassifier(
+        n_estimators=100, random_state=42, class_weight="balanced"
+    ),
     "NaiveBayes": MultinomialNB(),
 }
 
@@ -50,9 +54,7 @@ def main():
     print(f"Train set: {len(X_train)}, Test set: {len(X_test)}\n")
 
     print("Vectorizing text...")
-    X_train_tfidf, X_test_tfidf = vectorize_text(
-        X_train, X_test, ngram_range=(1, 3)
-    )
+    X_train_tfidf, X_test_tfidf = vectorize_text(X_train, X_test, ngram_range=(1, 3))
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
 
     preprocess_steps = config["task"]["preprocessing_steps"]
@@ -65,8 +67,8 @@ def main():
         print("\nPerforming cross-validation...")
         cv_scores = cross_validate(clone(model), X_train_tfidf, y_train, cv_folds=5)
         print("Cross-validation scores:")
-        for metric, score in cv_scores.items():
-            print(f"  {metric}: {score:.4f}")
+        for metric, values in cv_scores.items():
+            print(f"  {metric}: {values['mean']:.4f} ± {values['std']:.4f}")
         print()
 
         print(f"Training {model_name} on full train set...")
@@ -98,10 +100,14 @@ def main():
                 "TF-IDF": "TF-IDF vectorization with n-grams (1, 3)",
             },
         )
-        wandb.log({"cv_accuracy": cv_scores["accuracy"]})
-        wandb.log({"cv_precision": cv_scores["precision"]})
-        wandb.log({"cv_recall": cv_scores["recall"]})
-        wandb.log({"cv_f1": cv_scores["f1"]})
+        wandb.log({"cv_accuracy_mean": cv_scores["accuracy"]["mean"]})
+        wandb.log({"cv_accuracy_std": cv_scores["accuracy"]["std"]})
+        wandb.log({"cv_precision_mean": cv_scores["precision"]["mean"]})
+        wandb.log({"cv_precision_std": cv_scores["precision"]["std"]})
+        wandb.log({"cv_recall_mean": cv_scores["recall"]["mean"]})
+        wandb.log({"cv_recall_std": cv_scores["recall"]["std"]})
+        wandb.log({"cv_f1_mean": cv_scores["f1"]["mean"]})
+        wandb.log({"cv_f1_std": cv_scores["f1"]["std"]})
         wandb.finish()
 
     print(f"\n{'=' * 50}")
