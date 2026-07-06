@@ -22,3 +22,7 @@ task:
     - remove_punctuation
     - remove_stopwords
     - remove_extra_whitespace
+
+vectorization:
+  analyzer: "word"  # "word" for word-level, "char" for character-level
+  ngram_range: [1, 4]

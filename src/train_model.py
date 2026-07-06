@@ -1,6 +1,6 @@
 import numpy as np
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Literal, Optional, Tuple
 
 from sklearn.base import clone
 from sklearn.model_selection import StratifiedKFold, train_test_split
@@ -18,8 +18,13 @@ def split_dataset(X, y, test_size: float, random_state: int, stratify: bool = Tr
     return X_train, X_test, y_train, y_test
 
 
-def vectorize_text(X_train, X_test, ngram_range: tuple = (1, 2)):
-    vectorizer = TfidfVectorizer(ngram_range=ngram_range)
+def vectorize_text(
+    X_train,
+    X_test,
+    ngram_range: tuple = (1, 2),
+    analyzer: Literal["word", "char", "char_wb"] = "word",
+):
+    vectorizer = TfidfVectorizer(ngram_range=ngram_range, analyzer=analyzer)
     X_train_tfidf = vectorizer.fit_transform(X_train)
     X_test_tfidf = vectorizer.transform(X_test)
     return X_train_tfidf, X_test_tfidf
@@ -59,6 +64,7 @@ def run_train(
     predictions_path: Path,
     n_gram_range: Tuple[int, int],
     project_name: str,
+    analyzer: Optional[Literal["word", "char", "char_wb"]] = None,
 ) -> None:
     text_column = config["task"]["text_column"]
     label_column = config["task"]["label_column"]
@@ -80,8 +86,13 @@ def run_train(
     print(f"Train set: {len(X_train)}, Test set: {len(X_test)}\n")
 
     print("Vectorizing text...")
+    if analyzer is None:
+        analyzer = config["vectorization"]["analyzer"]
     X_train_tfidf, X_test_tfidf = vectorize_text(
-        X_train, X_test, ngram_range=n_gram_range
+        X_train,
+        X_test,
+        ngram_range=n_gram_range,
+        analyzer=analyzer,  # type: ignore
     )
     print(f"TF-IDF shape: {X_train_tfidf.shape}\n")
 

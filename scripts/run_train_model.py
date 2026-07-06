@@ -20,14 +20,15 @@ wandb.login(key=wandb_key)
 
 def main():
     n_gram_range = (1, 4)
+    analyzer = "char"  # Use character-level analysis for SVM
     params_dict: dict[str, Any] = {"class_weight": "balanced", "kernel": "linear"}
     params_str = "_".join(
         f"{k}_{v}" for k, v in params_dict.items() if k != "random_state"
     )
-    model_name = f"SVM_ngram_{n_gram_range[0]}-{n_gram_range[1]}" + (
+    model_name = f"SVM_ngram_{n_gram_range[0]}-{n_gram_range[1]}"+ f"_analyzer_{analyzer}" + (
         f"_{params_str}" if params_str else ""
     )
-
+    print(f"Model name: {model_name}")
     config_path = get_config_path()
     config = load_config(str(config_path))
     project_root = get_project_root()
@@ -51,6 +52,7 @@ def main():
         predictions_path,
         n_gram_range,
         project_name,
+        analyzer
     )
 
     print("Done!")
