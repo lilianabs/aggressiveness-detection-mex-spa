@@ -269,17 +269,17 @@ All experiments use 5-fold stratified cross-validation on the training set. Belo
 
 | Model | Features | CV Accuracy | CV Recall | CV F1 | Notes |
 |-------|----------|-------------|-----------|-------|-------|
-| **SVM (combined)** | word(1-4) + char_wb(2-5) | 0.829 ± 0.010 | 0.613 ± 0.028 | 0.673 ± 0.022 | **Best accuracy** — combines word + char features |
+| SVM (char 1-4) | char n-grams 1–4 | 0.812 ± 0.010 | 0.731 ± 0.024 | 0.691 ± 0.017 | **Best F1** — full-text character n-grams |
 | SVM (char_wb 1-4) | char_wb n-grams 1–4 | 0.807 ± 0.010 | 0.723 ± 0.015 | 0.683 ± 0.015 | Character-level only; high recall on aggr. class |
+| **SVM (combined)** | word(1-4) + char_wb(2-5) | 0.829 ± 0.010 | 0.613 ± 0.028 | 0.673 ± 0.022 | Combines word + char features; highest accuracy |
 | SVM (word 1-2) | word n-grams 1–2 | 0.825 ± 0.008 | 0.581 ± 0.030 | 0.656 ± 0.019 | Word-level baseline |
-| SVM (char 1-4) | char n-grams 1–4 | 0.812 ± 0.010 | 0.731 ± 0.024 | 0.691 ± 0.017 | Full-text character n-grams |
 | Logistic Regression (1-3) | word n-grams 1–3 | 0.814 ± 0.008 | 0.600 ± 0.019 | 0.650 ± 0.011 | — |
 | Random Forest (1-3) | word n-grams 1–3 | 0.822 ± 0.012 | 0.562 ± 0.047 | 0.645 ± 0.026 | — |
 
 **Key observations:**
-- **Combined features (word + char)** achieve the highest cross-validation accuracy (0.829) while maintaining reasonable recall on the aggressive class.
-- **Character-level analyzers** (especially `char_wb`) tend to have higher recall on the minority (aggressive) class, important for this imbalanced dataset.
-- **Word-level features** generally sacrifice recall for higher precision.
+- **Full-text character n-grams (char 1-4)** achieve the best F1 score (0.691 ± 0.017) with strong recall on the minority aggressive class.
+- **Character-level analyzers** (especially `char_wb`) tend to have higher recall on the aggressive class, crucial for minimizing false negatives in this imbalanced dataset.
+- **Combined word + character features** achieve higher accuracy but lower F1 than character-only models, reflecting a trade-off between overall accuracy and balanced precision-recall on the minority class.
 
 ### Tracking & Reproducibility
 
