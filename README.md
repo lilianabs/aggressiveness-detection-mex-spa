@@ -104,6 +104,24 @@ uv run scripts/run_train_models.py
 - Experiment logs in W&B
 - Predictions saved for each model for error analysis
 
+**Option C: Combined word + character-level TF-IDF experiment**
+
+```bash
+uv run scripts/run_combine_character_level_n_grams.py
+```
+
+- Combines word-level and character-level TF-IDF features using `sklearn.pipeline.FeatureUnion`
+- Word-level: TF-IDF with n-grams 1–4, analyzer='word'
+- Character-level: TF-IDF with n-grams 2–5, analyzer='char_wb' (character n-grams within word boundaries)
+- Trains SVM (linear kernel, balanced class weights) on concatenated feature space
+- Performs 5-fold stratified cross-validation
+- Evaluates on test set
+- Saves predictions and logs metrics to Weights & Biases
+
+**Output:** 
+- `data/predictions/test_predictions-SVM_combined_word_1-4_char_wb_2-5_class_weight_balanced_kernel_linear.csv`
+- Experiment logs in W&B with combined feature metrics
+
 ## Project Structure
 
 ```
@@ -120,9 +138,10 @@ uv run scripts/run_train_models.py
 │   └── utils.py                        # Config loading, path resolution, CSV I/O, W&B logging
 │
 ├── scripts/
-│   ├── run_preprocess_data.py          # Step 1: Clean raw data
-│   ├── run_train_model.py              # Step 2: Train baseline SVM + save predictions
-│   └── run_train_models.py             # Step 2 (alt): Benchmark multiple models (Logistic Regression, Random Forest, Naive Bayes)
+│   ├── run_preprocess_data.py                        # Step 1: Clean raw data
+│   ├── run_train_model.py                            # Step 2: Train baseline SVM + save predictions
+│   ├── run_train_models.py                           # Step 2 (alt): Benchmark multiple models (Logistic Regression, Random Forest, Naive Bayes)
+│   └── run_combine_character_level_n_grams.py       # Step 2 (alt): SVM with combined word + char TF-IDF features
 │
 ├── notebooks/
 │   ├── Explotatory_data_analysis.ipynb # EDA: class distribution, text length, word clouds
@@ -193,6 +212,20 @@ Benchmark three additional algorithms alongside the SVM baseline using identical
 
 **Tracking**: All results (CV metrics, predictions) logged to Weights & Biases (`aggressiveness-detection` project) for easy cross-run comparison.
 
+### 5. Combined Feature Engineering
+
+**File:** `scripts/run_combine_character_level_n_grams.py`
+
+Experiment combining word-level and character-level TF-IDF features via `FeatureUnion`:
+- **Word features**: TF-IDF with n-grams 1–4, analyzer='word'
+- **Character features**: TF-IDF with n-grams 2–5, analyzer='char_wb' (word-boundary-aware character n-grams)
+- **Model**: SVM with linear kernel and balanced class weights
+- **Rationale**: Character-level n-grams capture spelling patterns and subword information, complementing word-level features for better aggressiveness detection
+
+**Evaluation protocol**: Same as baseline (5-fold stratified CV + test set eval).
+
+**Tracking**: Results logged to Weights & Biases for comparison with single-feature baselines.
+
 ## Configuration
 
 **File:** `config.yaml`
@@ -228,12 +261,41 @@ task:
 
 **Note:** Preprocessing order matters. `remove_special_tokens` must run *before* `remove_punctuation` to avoid partial token removal (e.g., `<URL>` → `<UR` if punctuation removal runs first).
 
+## Experiment Results Summary
+
+### Cross-Validation Performance (5-fold Stratified)
+
+All experiments use 5-fold stratified cross-validation on the training set. Below is a summary of key runs:
+
+| Model | Features | CV Accuracy | CV Recall | CV F1 | Notes |
+|-------|----------|-------------|-----------|-------|-------|
+| **SVM (combined)** | word(1-4) + char_wb(2-5) | 0.829 ± 0.010 | 0.613 ± 0.028 | 0.673 ± 0.022 | **Best accuracy** — combines word + char features |
+| SVM (char_wb 1-4) | char_wb n-grams 1–4 | 0.807 ± 0.010 | 0.723 ± 0.015 | 0.683 ± 0.015 | Character-level only; high recall on aggr. class |
+| SVM (word 1-2) | word n-grams 1–2 | 0.825 ± 0.008 | 0.581 ± 0.030 | 0.656 ± 0.019 | Word-level baseline |
+| SVM (char 1-4) | char n-grams 1–4 | 0.812 ± 0.010 | 0.731 ± 0.024 | 0.691 ± 0.017 | Full-text character n-grams |
+| Logistic Regression (1-3) | word n-grams 1–3 | 0.814 ± 0.008 | 0.600 ± 0.019 | 0.650 ± 0.011 | — |
+| Random Forest (1-3) | word n-grams 1–3 | 0.822 ± 0.012 | 0.562 ± 0.047 | 0.645 ± 0.026 | — |
+
+**Key observations:**
+- **Combined features (word + char)** achieve the highest cross-validation accuracy (0.829) while maintaining reasonable recall on the aggressive class.
+- **Character-level analyzers** (especially `char_wb`) tend to have higher recall on the minority (aggressive) class, important for this imbalanced dataset.
+- **Word-level features** generally sacrifice recall for higher precision.
+
+### Tracking & Reproducibility
+
+All experiments are logged to [Weights & Biases](https://wandb.ai/) under the `aggressiveness-detection` project. Each run includes:
+- Cross-validation metrics (accuracy, precision, recall, F1 with mean ± std)
+- Preprocessing steps applied
+- Feature extraction configuration
+- Model hyperparameters
+
 ## Key Insights
 
 - **Class imbalance**: The dataset is skewed (~71% non-aggressive). Stratified splits ensure train/test preserve this distribution; recall on the minority class (aggressive) is prioritized.
-- **Feature importance**: TF-IDF with n-grams (1–3) captures both unigrams and context (bigrams/trigrams). This outperformed unigrams-only in baseline tests.
+- **Feature engineering**: Combining word-level and character-level TF-IDF features improves overall accuracy. Character n-grams capture spelling patterns and subword units useful for detecting aggressive language.
 - **Cross-validation**: Stratified k-fold (k=5) is used to reliably estimate model performance on imbalanced data and to detect overfitting.
 - **Metric selection**: Accuracy alone is misleading on imbalanced data. Always inspect precision, recall, and F1, especially for the minority class.
+- **Analyzer choice**: `char_wb` (character n-grams within word boundaries) balances capturing subword patterns while avoiding excessive sparsity compared to full-text character n-grams.
 
 ## Next Steps
 
