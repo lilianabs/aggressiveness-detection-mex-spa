@@ -301,10 +301,10 @@ All experiments are logged to [Weights & Biases](https://wandb.ai/) under the `a
 
 Possible improvements and future work:
 - Try other feature representations (word embeddings, contextual models like transformers)
-- Hyperparameter tuning (GridSearchCV or Optuna)
 - Ensemble methods combining multiple models
-- Data augmentation to address class imbalance
 - Neural network approaches (deep learning)
+- Modern approaches (use LLMs with few or zero shot learning)
+- Fine tune other variants of BETO
 
 ## References
 
