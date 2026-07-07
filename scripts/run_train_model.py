@@ -20,7 +20,7 @@ wandb.login(key=wandb_key)
 
 def main():
     n_gram_range = (1, 4)
-    analyzer = "char"  # Use character-level analysis for SVM
+    analyzer = "word"  # Use character-level analysis for SVM
     params_dict: dict[str, Any] = {"class_weight": "balanced", "kernel": "linear"}
     params_str = "_".join(
         f"{k}_{v}" for k, v in params_dict.items() if k != "random_state"
